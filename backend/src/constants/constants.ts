@@ -1,0 +1,2 @@
+export const TODAY_SHOWS = "TODAY_SHOWS"
+export const ONLINE_USERS = "ONLINE_USERS"
