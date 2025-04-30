@@ -23,13 +23,12 @@ export const findTodayShow : fnType = async (req ,res)=>{
         }
 
 
-        let  todayDate = new Date()
-        todayDate.setHours(0,0,0,0)
-
-        let tomorrowDate = new Date(todayDate)
-        tomorrowDate    = tomorrowDate.setDate(todayDate.getDate() +1 ) as any
-        tomorrowDate.setHours(0,0,0,0)
+        let todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0);
         
+        let tomorrowDate = new Date(todayDate);
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        tomorrowDate.setHours(0, 0, 0, 0);
         
         const findShow = await Show.find({
             startTime :{
@@ -39,8 +38,9 @@ export const findTodayShow : fnType = async (req ,res)=>{
             endTime:{
                 $lte : tomorrowDate
             }
-        }).populate("movie screens seats") .select("_id title duration thumbnail")     
-
+        }).populate({path:"movie", select :"_id thumbnail title"})
+        .populate({path:"screen" ,select:"name _ id"})
+        .populate({path:"seats",  select:"_id seatNumber type "})
 
 
         if(!findShow){
@@ -66,7 +66,7 @@ export const findTodayShow : fnType = async (req ,res)=>{
 
 
     } catch (error) {
-        logger.error(`Error in finding the todays show `)
+        logger.error(`Error in finding the todays show ${error}`)
         return res.status(500).json({
             success : false,
             message : error
@@ -76,14 +76,17 @@ export const findTodayShow : fnType = async (req ,res)=>{
 }
 
 
-const findShowbyId : fnType = async (req ,res)=>{
+ export const findShowbyId : fnType = async (req ,res)=>{
 
     try {
-            const {showid } = req.query
+            const {showid } = req.params
+        console.log(showid)
+                
+                    const findShow = await Show.findById(showid).populate({path:"movie" ,select :"title description _id rating "})
+                    .populate({path:"screen", select :"_id name "})
+                    .populate({path:"seats" ,select :"seatNumber _id status price  "})
 
-                const findShow = await Show.findById(showid).populate("movie screen seats").select("title description _id rating name seatnumber status price ")
-
-
+                        console.log(await Show.findById(showid))
                 if(!findShow){
                     logger.warn(`NO show was found`)
                     throw new ApiError(401, 'NO show found')
@@ -97,7 +100,7 @@ const findShowbyId : fnType = async (req ,res)=>{
                     shows: findShow
                 })
     } catch (error) {
-        logger.error(`Error in finding the show`)
+        logger.error(`Error in finding the show ${error}`)
         return res.status(500).json({
             success : false,
             message : error
