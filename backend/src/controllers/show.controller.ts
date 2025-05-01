@@ -1,6 +1,6 @@
 import { readdirSync } from "fs";
 import { RedisClient } from "..";
-import { TODAY_SHOWS } from "../constants/constants";
+import { SEATS_RESERVATION_ONGOING, TODAY_SHOWS } from "../constants/constants";
 import { Show } from "../models/show.models";
 import { fnType } from "../type";
 import logger from "../utils/logger";
@@ -40,7 +40,7 @@ export const findTodayShow : fnType = async (req ,res)=>{
             }
         }).populate({path:"movie", select :"_id thumbnail title"})
         .populate({path:"screen" ,select:"name _ id"})
-        .populate({path:"seats",  select:"_id seatNumber type "})
+        
 
 
         if(!findShow){
@@ -81,6 +81,13 @@ export const findTodayShow : fnType = async (req ,res)=>{
     try {
             const {showid } = req.params
         console.log(showid)
+
+        // we have to check if the seat is being registered noew 
+
+            const seatsBeingBooked  = await RedisClient.lrange(`${SEATS_RESERVATION_ONGOING}${showid}`, 0 , -1)
+
+            console.log(seatsBeingBooked)
+
                 
                     const findShow = await Show.findById(showid).populate({path:"movie" ,select :"title description _id rating "})
                     .populate({path:"screen", select :"_id name "})
@@ -97,7 +104,8 @@ export const findTodayShow : fnType = async (req ,res)=>{
                 return res.status(200).json({
                     success : true ,
                     message :"Show found successfully ",
-                    shows: findShow
+                    shows: findShow,
+                    bookingSeats : seatsBeingBooked
                 })
     } catch (error) {
         logger.error(`Error in finding the show ${error}`)
@@ -110,3 +118,5 @@ export const findTodayShow : fnType = async (req ,res)=>{
 
 
 }
+
+
