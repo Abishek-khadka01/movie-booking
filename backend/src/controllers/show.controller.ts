@@ -8,72 +8,60 @@ import ApiError from "../utils/Error";
 
 
 
-export const findTodayShow : fnType = async (req ,res)=>{
+
+export const findTodayShow  : fnType= async (req, res) => {
     try {
-        // first check in redis if aleady available 
+        const cachedShows = await RedisClient.get(TODAY_SHOWS);
 
-        const TodaysShow = await RedisClient.get(TODAY_SHOWS)
-        if(TodaysShow){
-            logger.info(`Todays show was found in redis `)
+        if (cachedShows) {
+            logger.info(`Today's shows found in Redis`);
             return res.status(200).json({
-                success : true,
-                message : "Shows found successfully ",
-                shows : JSON.parse(TodaysShow)
-            })
+                success: true,
+                message: "Shows found successfully (from cache)",
+                shows: JSON.parse(cachedShows),
+            });
         }
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        let todayDate = new Date();
-        todayDate.setHours(0, 0, 0, 0);
-        
-        let tomorrowDate = new Date(todayDate);
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-        tomorrowDate.setHours(0, 0, 0, 0);
-        
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        console.log(`Todays date is ${today} and tomorrow is ${tomorrow}`)
         const findShow = await Show.find({
-            startTime :{
-                $gte : todayDate,
-              
-            },
-            endTime:{
-                $lte : tomorrowDate
-            }
-        }).populate({path:"movie", select :"_id thumbnail title"})
-        .populate({path:"screen" ,select:"name _ id"})
-        
+            startTime: { $gte: today },
+            endTime: { $lte: tomorrow },
+        })
+            .populate({ path: "movie", select: "_id thumbnail title" })
+            .populate({ path: "screen", select: "name _id" })
+            .populate("seats");
 
-
-        if(!findShow){
-            logger.warn(`NO show was found`)
+        if (!findShow || findShow.length === 0) {
+            logger.warn("No shows found for today");
             return res.status(200).json({
-                success : true ,
-                message : "Shows found",
-                shows : findShow
-            })
+                success: true,
+                message: "No shows found",
+                shows: [],
+            });
         }
 
+        await RedisClient.set(TODAY_SHOWS, JSON.stringify(findShow));
 
-        // saving values in redis 
-
-        await RedisClient.set(TODAY_SHOWS , JSON.stringify(findShow))
-
-        logger.info(`The shows was found successfully `)
+        logger.info(`Shows fetched and cached successfully`);
         return res.status(200).json({
-            success : true ,
-            message : "Shows found",
-            shows : findShow
-        })
-
+            success: true,
+            message: "Shows found",
+            shows: findShow,
+        });
 
     } catch (error) {
-        logger.error(`Error in finding the todays show ${error}`)
+        logger.error(`Error in findTodayShow: ${error}`);
         return res.status(500).json({
-            success : false,
-            message : error
-        })
+            success: false,
+            message: "Server error",
+        });
     }
-
-}
+};
 
 
  export const findShowbyId : fnType = async (req ,res)=>{

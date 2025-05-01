@@ -12,7 +12,8 @@ import axios from "axios"
 
 
 export const FindShows = async ()=>{
-    return await axios.get(`${import.meta.env.VITE_USER_SPECIFIC_SHOWS}`, {
+    console.log(`${import.meta.env.VITE_USERS_SPECIFIC_SHOWS}`)
+    return await axios.get(`${import.meta.env.VITE_USERS_SPECIFIC_SHOWS}`, {
         withCredentials : true
     })
 
