@@ -1,3 +1,5 @@
+import { RedisClient } from "..";
+import { TODAY_SHOWS } from "../constants/constants";
 import { CreateShowSeats } from "../db/data/Createshow_Seats";
 import { Movie } from "../models/movies.models";
 import { Screen } from "../models/screen.models";
@@ -74,6 +76,7 @@ import { Document } from "mongoose";
           await CreateShowSeats(createShow._id, screenno)
 
 
+            await RedisClient.del(TODAY_SHOWS)
       return res.status(200).json({
         success: true,
         message: "Show added successfully"

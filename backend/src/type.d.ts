@@ -34,3 +34,9 @@ declare global {
 export interface SocketHandler extends Socket {
     userId ?: string
 }
+
+
+export interface ShowSocketType extends Socket{
+    userId ?: string,
+    showID ?: string 
+}

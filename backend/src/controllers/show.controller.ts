@@ -72,12 +72,12 @@ export const findTodayShow  : fnType= async (req, res) => {
 
         // we have to check if the seat is being registered noew 
 
-            const seatsBeingBooked  = await RedisClient.lrange(`${SEATS_RESERVATION_ONGOING}${showid}`, 0 , -1)
+            const seatsBeingBooked  = await RedisClient.smembers(`${SEATS_RESERVATION_ONGOING}:${showid}`)
 
             console.log(seatsBeingBooked)
 
                 
-                    const findShow = await Show.findById(showid).populate({path:"movie" ,select :"title description _id rating "})
+                    const findShow = await Show.findById(showid).populate({path:"movie" ,select :"title description _id rating thumbnail"})
                     .populate({path:"screen", select :"_id name "})
                     .populate({path:"seats" ,select :"seatNumber _id status price  "})
 

@@ -4,7 +4,8 @@ export type ShowDetailsType =  {
         title : string,
         description : string,
         rating :  number,
-        _id : string 
+        _id : string,
+        thumbnail : string 
     },
     screen :{
         _id : string ,
@@ -31,6 +32,7 @@ type SeatType = {
         _id : string ,
         thumbnail : string,
         title : string,
+
     },
     screen :{
         name : string ,
