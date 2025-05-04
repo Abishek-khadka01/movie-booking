@@ -9,6 +9,7 @@ import {
   UPDATED_SEATS,
   REMOVE_SELECTED_SEAT_FOR_REGISTER,
 } from "../../constants/sockets/socket.constants";
+import { PaymentApi } from "../../services/paymentApis";
 
 const ShowID = () => {
   const [onGoingRegisterSeats, setOnGoingRegisterSeats] = useState<string[] | null>(null);
@@ -70,8 +71,20 @@ const ShowID = () => {
         seatId: seatId,
       }
     );
+
+    console.log(selectedSeats)
   };
 
+
+
+  const HandlePayment = async (seatids : string[], showid : string )=>{
+    console.log(`Button Clicked `)
+      const result = await PaymentApi(seatids, showid)
+    if(result.data.success){
+      alert(`Successful `)
+    }
+
+  }
   return (
     <>
       <div>Show ID</div>
@@ -121,6 +134,29 @@ const ShowID = () => {
               );
             })}
           </div>
+
+          <div>
+            <p>Selected Seats</p>
+
+              {
+                selectedSeats.map((seats)=>{
+                  return (
+                    <>
+                    {seats} 
+                    </>
+                  )
+                })
+              }
+
+          </div>
+
+
+          <button type="button" onClick={()=>{
+            HandlePayment(selectedSeats ,showid as string  )
+          }}> 
+              Make payment 
+
+          </button>
         </>
       )}
     </>

@@ -61,7 +61,7 @@ const MapSocketToUserId = new Map<string, string>()
 
 // map to keep the record of the selected seat and by which user 
 
-const MapSelectedSeatToUserId = new Map<string, string >()
+  const MapSelectedSeatToUserId = new Map<string, string >()
 // the show seats are unique id so  
 
 
@@ -204,12 +204,13 @@ import { UserRouter } from "./routes/user.routes";
 import { MovieRouter } from "./routes/movie.routes";
 import { AdminRouter } from "./routes/admin.routes";
 import { ShowRouter } from "./routes/show.routes";
+import { PaymentRouter } from "./routes/payment.routes";
 
 app.use("/users", UserRouter)
 app.use("/movies", MovieRouter)
 app.use("/admin", AdminRouter)
 app.use("/shows", ShowRouter)
-
+app.use("/payment", PaymentRouter)
 import { ErrorMiddleware } from "./middlewares/ErrorMiddleware";
 
 import { createSeats } from "./db/data/creatSeats";
@@ -229,13 +230,15 @@ import { Show } from "./models/show.models";
 app.use(ErrorMiddleware)
 
 
-export {httpServer , RedisClient}
+export {httpServer , RedisClient , MapSelectedSeatToUserId , MapSocketToUserId , MapUserIdToSocket}
 
 
 
 // todo 
 
 /*
+     add the payment methofs 
+     the selected user can remove the seatid after reloading the page too 
      
 
 

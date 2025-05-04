@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 
 const showSeatSchema = new mongoose.Schema({
   seatNumber: { type: mongoose.Types.ObjectId, required: true,
-    ref:"Seats",
+    ref:"Seat",
 
    }, 
   
   status: { 
     type: String, 
-    enum: ['AVAILABLE', 'BOOKED', 'BLOCKED'], 
+    enum: ['AVAILABLE', 'BOOKED'], 
     default: 'AVAILABLE'
   },
   show :{
