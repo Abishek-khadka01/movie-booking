@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import {  useParams } from "react-router-dom";
 import { FindShowbyID } from "../../services/showApis";
 import { useState, useEffect } from "react";
 import { ShowDetailsType } from "../../types/showTypes";
@@ -18,7 +18,8 @@ const ShowID = () => {
 
   const id = useUserStore.getState().user?._id;
   const { showid } = useParams();
-  const ShowSocketInstance = ShowsSocket.Instance();
+  const ShowSocketInstance = ShowsSocket.Instance()
+ 
 
   useEffect(() => {
     ShowsSocket.ConnectSocket(id as string, showid as string);
@@ -56,6 +57,8 @@ const ShowID = () => {
 
   }, [ShowSocketInstance]);
 
+
+  
   const handleSeatSelect = (seatId: string) => {
     const isAlreadySelected = selectedSeats.includes(seatId);
 
@@ -81,7 +84,8 @@ const ShowID = () => {
     console.log(`Button Clicked `)
       const result = await PaymentApi(seatids, showid)
     if(result.data.success){
-      alert(`Successful `)
+      console.table(result.data)
+      window.location.href = result.data.payment_url
     }
 
   }

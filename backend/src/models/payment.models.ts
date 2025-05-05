@@ -11,8 +11,9 @@ const paymentSchema = new mongoose.Schema({
   },
   method: { 
     type: String, 
-    enum: ['CARD', 'UPI', 'NETBANKING', 'WALLET', 'CASH'], 
-    required: true 
+    enum: ['KHALTI'], 
+    required: true,
+    default :"KHALTI" 
   },
   transactionId: { type: String, required: true, unique: true },
 }, { timestamps: true });

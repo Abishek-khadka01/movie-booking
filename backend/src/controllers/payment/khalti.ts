@@ -7,6 +7,8 @@ import logger from "../../utils/logger";
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { KhaltiRequest } from "./apis/khaltiApiRequest";
+import { Payment } from "../../models/payment.models";
+import { Z_OK } from "node:zlib";
 
 // Extend Express Request if needed
 
@@ -55,7 +57,7 @@ export const InitiatePayment = async (req: Request, res: Response) => {
       const seat = await ShowSeat.findById(seatId)
         .session(session)
         .populate({ path: "seatNumber", select: "seatNumber" })
-        .select("price _id");
+        .select("price _id ")
 
       if (!seat) {
         logger.warn(`Seat not found: ${seatId}`);
@@ -93,17 +95,35 @@ export const InitiatePayment = async (req: Request, res: Response) => {
       product_details: StackofSeats,
     });
 
+
+      console.table(paymentResponse)
+    if(!paymentResponse.pidx){
+      logger.info(`NO proper resionse`)
+      throw new ApiError(301, "Payment failed ")
+    }
+
+      console.log(`Payment Response is ${paymentResponse}`)
+
+      const [CreatePayment] = await Payment.create([{
+        booking : bookingDoc._id,
+        user : userId,
+        amount : totalPrice,
+        transactionId : paymentResponse.pidx
+      }], {session})
+
+    
+    
     logger.info(`Khalti payment initiated successfully: ${JSON.stringify(paymentResponse)}`);
 
     await session.commitTransaction();
     session.endSession();
 
     return res.status(200).json({
-      success: true,
-      message: "Payment initiated successfully.",
-      bookingId: bookingDoc._id,
-      paymentDetails: paymentResponse,
-    });
+      success : true,
+      message : "the payment is initiated",
+      payment_url : paymentResponse.payment_url
+    })
+    
   } catch (error) {
     logger.error(`Error during payment initiation: ${error}`);
     await session.abortTransaction();
