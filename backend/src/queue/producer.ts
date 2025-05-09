@@ -16,7 +16,7 @@ try {
     await channel.assertQueue(SEND_MESSAGE_QUEUE)
 
        
-    return channel
+    return  channel
     
 
 

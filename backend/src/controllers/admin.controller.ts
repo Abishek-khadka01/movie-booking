@@ -1,5 +1,5 @@
-import { RedisClient } from "..";
-import { TODAY_SHOWS } from "../constants/constants";
+import { Queue, RedisClient } from "..";
+import { SHOW_CREATED_MESSAGE, TODAY_SHOWS } from "../constants/constants";
 import { CreateShowSeats } from "../db/data/Createshow_Seats";
 import { Movie } from "../models/movies.models";
 import { Screen } from "../models/screen.models";
@@ -87,8 +87,18 @@ import {Request , Response} from "express"
       });
 
 
+      const message = {
+        _id: createShow._id,
+        title : `The show ${findMovie.title} is added for the time ${starttime}`
+      };
+      
 
-      return 
+      (await Queue).sendToQueue(SHOW_CREATED_MESSAGE ,Buffer.from(JSON.stringify(message)), {
+        persistent : true
+      } )
+      
+
+      console.log(`the message to queue sent `)
   
     } catch (error) {
       logger.error(`Error in creating the show: ${error}`);

@@ -7,7 +7,7 @@ import CookieParser from "cookie-parser"
 import cors from "cors"
 import logger from "./utils/logger";
 import { ShowSocketType, SocketHandler } from "./type";
-import { ONLINE_USERS, SEATS_RESERVATION_ONGOING } from "./constants/constants";
+import { ONLINE_USERS, SEATS_RESERVATION_ONGOING, SHOW_CREATED_MESSAGE } from "./constants/constants";
 import { REMOVE_SELECTED_SEAT_FOR_REGISTER, SELECT_SEATS_FOR_REGISTER , UPDATED_SEATS} from "./constants/sockets/socket.constants";
 import { ConnectBroker } from "./queue/producer";
 dotenv.config()
@@ -203,6 +203,29 @@ ShowSocket.on("connect", (socket : ShowSocketType)=>{
 
 
 const Queue =  ConnectBroker()
+Queue.then((queue) => {
+    queue.consume(SHOW_CREATED_MESSAGE, async (message: any) => {
+      if (message !== null) {
+        try {
+          const parsedMessage = JSON.parse(message.content.toString());
+          
+          logger.warn('The details are received');
+  
+          await SendNotification(parsedMessage);
+  
+          
+          queue.ack(message);
+        } catch (error) {
+          logger.error('Failed to process message:', error);
+          
+        }
+      }
+    });
+  });
+  
+
+
+
 
 import { UserRouter } from "./routes/user.routes";
 import { MovieRouter } from "./routes/movie.routes";
@@ -223,6 +246,9 @@ import { CreateScreens } from "./db/data/createscreens";
 import { InsertMovies } from "./db/data/movies";
 import { User } from "./models/user.models";
 import { Show } from "./models/show.models";
+import SendNotification, { NotificationPayload } from "./queue/consumer";
+
+
 
 
 
