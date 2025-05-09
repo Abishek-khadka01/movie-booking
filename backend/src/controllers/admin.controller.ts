@@ -10,8 +10,12 @@ import logger from "../utils/logger";
 import { movieSchemaValidator } from "../validators/movie.validators";
 import mongoose from "mongoose";
 import { Document } from "mongoose";
+import {Request , Response} from "express"
 
- export const CreateShow: fnType = async (req, res) => {
+
+
+
+ export const CreateShow = async (req : Request, res : Response) => {
     try {
       const  { moviename, starttime, screenno } = req.body; // screen id is from frontend  // the mvoviename is the movie id 
       
@@ -77,10 +81,14 @@ import { Document } from "mongoose";
 
 
             await RedisClient.del(TODAY_SHOWS)
-      return res.status(200).json({
+       res.status(200).json({
         success: true,
         message: "Show added successfully"
       });
+
+
+
+      return 
   
     } catch (error) {
       logger.error(`Error in creating the show: ${error}`);

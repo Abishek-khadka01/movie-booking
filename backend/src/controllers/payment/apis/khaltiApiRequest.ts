@@ -24,7 +24,7 @@ export type ProductDetailstype = {
 };
 
 
-export const KhaltiRequest = async (khaltiDetails: KhaltiDetailsType) => {
+export const KhaltiRequest = async (khaltiDetails: KhaltiDetailsType) : Promise<any>=> {
   console.log("Product details:", khaltiDetails.product_details);
 
   if (
@@ -73,15 +73,9 @@ export const KhaltiRequest = async (khaltiDetails: KhaltiDetailsType) => {
     console.log("Khalti response:", response.data, response.status);
     return response.data;
   } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      logger.error("Khalti Axios error:", {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
-    } else {
+    
       logger.error(`Unknown error in the khalti request: ${error.message}`);
-    }
+    
     throw error;
   }
 };

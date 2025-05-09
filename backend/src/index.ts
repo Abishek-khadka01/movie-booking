@@ -9,6 +9,7 @@ import logger from "./utils/logger";
 import { ShowSocketType, SocketHandler } from "./type";
 import { ONLINE_USERS, SEATS_RESERVATION_ONGOING } from "./constants/constants";
 import { REMOVE_SELECTED_SEAT_FOR_REGISTER, SELECT_SEATS_FOR_REGISTER , UPDATED_SEATS} from "./constants/sockets/socket.constants";
+import { ConnectBroker } from "./queue/producer";
 dotenv.config()
 
 const app = express();
@@ -200,6 +201,9 @@ ShowSocket.on("connect", (socket : ShowSocketType)=>{
 })
 
 
+
+const Queue =  ConnectBroker()
+
 import { UserRouter } from "./routes/user.routes";
 import { MovieRouter } from "./routes/movie.routes";
 import { AdminRouter } from "./routes/admin.routes";
@@ -211,8 +215,9 @@ app.use("/movies", MovieRouter)
 app.use("/admin", AdminRouter)
 app.use("/shows", ShowRouter)
 app.use("/payment", PaymentRouter)
-import { ErrorMiddleware } from "./middlewares/ErrorMiddleware";
 
+
+import { ErrorMiddleware } from "./middlewares/ErrorMiddleware";
 import { createSeats } from "./db/data/creatSeats";
 import { CreateScreens } from "./db/data/createscreens";
 import { InsertMovies } from "./db/data/movies";
@@ -230,7 +235,7 @@ import { Show } from "./models/show.models";
 app.use(ErrorMiddleware)
 
 
-export {httpServer , RedisClient , MapSelectedSeatToUserId , MapSocketToUserId , MapUserIdToSocket}
+export {httpServer , RedisClient , MapSelectedSeatToUserId , MapSocketToUserId , MapUserIdToSocket , NotificationSocket, Queue}
 
 
 

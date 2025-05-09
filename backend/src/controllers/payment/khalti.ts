@@ -8,9 +8,9 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { KhaltiRequest } from "./apis/khaltiApiRequest";
 import { Payment } from "../../models/payment.models";
-import { Z_OK } from "node:zlib";
-
-// Extend Express Request if needed
+import { Queue } from "../..";
+import { SHOW_CREATED_MESSAGE } from "../../constants/constants";
+import { Show } from "../../models/show.models";
 
 
 export const InitiatePayment = async (req: Request, res: Response) => {
@@ -83,6 +83,12 @@ export const InitiatePayment = async (req: Request, res: Response) => {
       { session }
     );
 
+    const findShow = await Show.findById(showID).populate("movie  seats")
+
+    console.log(findShow)
+
+
+
     // Initiate payment with Khalti
     const paymentResponse = await KhaltiRequest({
       total_amount: totalPrice,
@@ -97,7 +103,7 @@ export const InitiatePayment = async (req: Request, res: Response) => {
 
 
       console.table(paymentResponse)
-    if(!paymentResponse.pidx){
+    if(!paymentResponse?.pidx){
       logger.info(`NO proper resionse`)
       throw new ApiError(301, "Payment failed ")
     }
@@ -108,7 +114,7 @@ export const InitiatePayment = async (req: Request, res: Response) => {
         booking : bookingDoc._id,
         user : userId,
         amount : totalPrice,
-        transactionId : paymentResponse.pidx
+        transactionId : paymentResponse?.pidx || "sjgjsgj"
       }], {session})
 
     
@@ -118,10 +124,15 @@ export const InitiatePayment = async (req: Request, res: Response) => {
     await session.commitTransaction();
     session.endSession();
 
+      (await Queue).sendToQueue(SHOW_CREATED_MESSAGE as string , Buffer.from(JSON.stringify({
+        movieName : "hello"
+      })))
+
+
     return res.status(200).json({
       success : true,
       message : "the payment is initiated",
-      payment_url : paymentResponse.payment_url
+      payment_url : paymentResponse?.payment_url
     })
     
   } catch (error) {

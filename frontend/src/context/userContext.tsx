@@ -1,32 +1,50 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
-// 1. Define the User type
 interface User {
   username: string;
   profilePicture: string;
   _id: string;
+  isLogin: boolean;
+  admin: boolean;
 }
 
-// 2. Define the Store type
 interface UserStore {
   user: User | null;
   setUser: (userData: User) => void;
   clearUser: () => void;
 }
 
-// 3. Create the store
 const useUserStore = create<UserStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
-      setUser: (userData) => set({ user: userData }),
-      clearUser: () => set({ user: null }),
+      setUser: (userData) => {
+        set({ user: userData });
+        localStorage.setItem('user-storage-timestamp', Date.now().toString());
+      },
+      clearUser: () => {
+        set({ user: null });
+        localStorage.removeItem('user-storage-timestamp');
+      },
     }),
     {
       name: 'user-storage',
-      storage: createJSONStorage(() => localStorage), 
-    } 
+      storage: createJSONStorage(() => localStorage),
+      // Custom deserialization to handle expiration
+      merge: (persistedState: any, currentState) => {
+        const storedAt = parseInt(localStorage.getItem('user-storage-timestamp') || '0', 10);
+        const isExpired = Date.now() - storedAt > 3600000; // 1 hour
+
+        if (isExpired) {
+          localStorage.removeItem('user-storage');
+          localStorage.removeItem('user-storage-timestamp');
+          return { ...currentState, user: null };
+        }
+
+        return { ...currentState, ...persistedState };
+      },
+    }
   )
 );
 

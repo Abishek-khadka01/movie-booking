@@ -80,8 +80,8 @@ export const findMovieonGenre  : fnType = async (req ,res)=>{
 
 
     try {
-            const movies =await Movie.find().select("releaseDate title thumbnail")
-
+            const movies =await Movie.find().select("releaseDate title thumbnail rating ")
+	   console.log(`the movies found is ${movies}`)
             logger.info(`Movies found successfully`)
             return res.status(200).json({
                 success : true,

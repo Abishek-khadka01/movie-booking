@@ -5,8 +5,8 @@ const transporter = createTransport({
   port: 587,
   secure: false,
   auth: {
-    user: "maddison53@ethereal.email",
-    pass: "jn7jnAPss4f63QBp6D",
+    user: process.env.NODEMAILER_EMAIL as string ,
+    pass: process.env.NODEMAILER_PASSWORD as string 
   },
 });
 
@@ -15,7 +15,7 @@ interface TicketMessage {
   movieName: string;
   movieDate: string;
   movieTime: string;
-  seats: string; // e.g., "A1, A2, A3"
+  seats: string[] | string ; // e.g., "A1, A2, A3"
   ticketPrice: number;
   quantity: number;
   totalAmount: number;
@@ -94,7 +94,7 @@ export const SendMail = async (
   `;
 
   await transporter.sendMail({
-    from: "maddison53@ethereal.email", // or your env var if set properly
+    from: process.env.NODEMAILER_EMAIL ,
     to,
     subject,
     html: htmlContent,

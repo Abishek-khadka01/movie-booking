@@ -29,6 +29,11 @@ class NotificationSocket  {
         }
 
 
+        static DisConnect = ()=>{
+            this.SocketInstance?.disconnect()
+        }
+
+
 
 }
 
