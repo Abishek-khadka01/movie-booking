@@ -93,7 +93,7 @@ const ShowID = () => {
 
             {/* Seats Layout */}
             <div className="mt-6">
-              <div className="grid grid-cols-6 gap-4">
+              <div className="grid grid-cols-10 gap-4">
                 {showDetails.seats.map(({ seatNumber, _id, status }) => {
                   const isBooked = status !== "AVAILABLE";
                   const isBeingBooked = onGoingRegisterSeats?.includes(_id);
@@ -110,10 +110,12 @@ const ShowID = () => {
                   return (
                     <div
                       key={_id}
-                      className={`relative aspect-w-1 aspect-h-1 cursor-pointer ${seatColor} border border-black flex items-center justify-center`}
+                      className={`relative w-full pt-[100%] ${seatColor} border border-black cursor-pointer`}
                       onClick={() => !isBooked && !isBeingBooked && handleSeatSelect(_id)}
                     >
-                      <p className="text-xs font-semibold text-center">{seatNumber}</p>
+                      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                        <p className="text-xs font-semibold text-center">{seatNumber.seatNumber}</p>
+                      </div>
                     </div>
                   );
                 })}
@@ -142,7 +144,7 @@ const ShowID = () => {
               onClick={() => HandlePayment(selectedSeats, showid as string)}
               disabled={selectedSeats.length === 0}
             >
-              Make Payment
+              Payment
             </button>
           </>
         )}

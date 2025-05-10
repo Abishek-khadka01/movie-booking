@@ -9,9 +9,11 @@ import mongoose from "mongoose";
 import { KhaltiRequest } from "./apis/khaltiApiRequest";
 import { Payment } from "../../models/payment.models";
 import { Queue } from "../..";
-import { SHOW_CREATED_MESSAGE } from "../../constants/constants";
+import { SEND_MESSAGE_QUEUE, SHOW_CREATED_MESSAGE } from "../../constants/constants";
 import { Show } from "../../models/show.models";
-
+import { MapUserIdToSocket } from "../..";
+import { Document } from "mongoose";
+import { channel } from "diagnostics_channel";
 
 export const InitiatePayment = async (req: Request, res: Response) => {
   const session = await mongoose.startSession();
@@ -86,7 +88,7 @@ export const InitiatePayment = async (req: Request, res: Response) => {
     const findShow = await Show.findById(showID).populate("movie  seats")
 
     console.log(findShow)
-
+    console.log(`the stack of seats is ${StackofSeats}`)
 
 
     // Initiate payment with Khalti
@@ -114,7 +116,7 @@ export const InitiatePayment = async (req: Request, res: Response) => {
         booking : bookingDoc._id,
         user : userId,
         amount : totalPrice,
-        transactionId : paymentResponse?.pidx || "sjgjsgj"
+        transactionId : paymentResponse?.pidx 
       }], {session})
 
     
@@ -146,3 +148,112 @@ export const InitiatePayment = async (req: Request, res: Response) => {
     });
   }
 };
+
+
+
+interface BookingPopulated {
+  seatNumbers: (string | mongoose.Types.ObjectId)[];
+}
+
+interface PaymentType extends Document {
+  _id: mongoose.Types.ObjectId;
+  booking: BookingPopulated | mongoose.Types.ObjectId;
+  transactionId: string;
+  status: string;
+}
+
+export const VerifyPayment = async (req: Request, res: Response) => {
+  try {
+    const { user } = req;
+    const { pidx, transaction_id, purchase_order_id, status } = req.body;
+    console.log(req.body);
+
+    if (!pidx || !transaction_id || !purchase_order_id || !status) {
+      logger.error(`Transaction validation failed: Missing fields`);
+      throw new ApiError(400, "Transaction failed - required fields missing");
+    }
+
+    const bookingId = new mongoose.Types.ObjectId(purchase_order_id);
+
+    const findPayment = await Payment.findOne({
+      booking: bookingId,
+    }).populate({ path: "booking", select: "seatNumbers" });
+
+    if (!findPayment || !findPayment.booking) {
+      logger.error(`No payment or booking found for booking ID: ${purchase_order_id}`);
+      throw new ApiError(400, "No payment or booking was found");
+    }
+
+    if (findPayment.status === "COMPLETED") {
+      return res.status(200).json({
+        success: true,
+        message: "Payment already verified",
+      });
+    }
+
+    if (findPayment.transactionId !== transaction_id || status.toUpperCase() !== "COMPLETED") {
+      logger.error(`Payment mismatch: expected ${findPayment.transactionId}, got ${transaction_id}, status: ${status}`);
+      throw new ApiError(400, "The transaction was not proper");
+    }
+
+    // Start a session for atomic operations
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      findPayment.status = "COMPLETED";
+      await findPayment.save({ session });
+
+      // Safe extraction of seatNumbers
+      let seatNumbers: (string | mongoose.Types.ObjectId)[] = [];
+
+      if (
+        typeof findPayment.booking === "object" &&
+        findPayment.booking !== null &&
+        "seatNumbers" in findPayment.booking &&
+        Array.isArray((findPayment.booking as any).seatNumbers)
+      ) {
+        seatNumbers = (findPayment.booking as BookingPopulated).seatNumbers;
+      } else {
+        logger.error(`Booking data is not populated or missing seatNumbers`);
+        throw new ApiError(500, "Booking data is incomplete");
+      }
+
+      for (const seatId of seatNumbers) {
+        if (seatId) {
+          await ShowSeat.findByIdAndUpdate(
+            seatId,
+            { status: "BOOKED" },
+            { session }
+          );
+        }
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+
+       res.status(200).json({
+        success: true,
+        message: "Payment Successful",
+      });
+      
+      
+     return 
+    } catch (err) {
+      await session.abortTransaction();
+      session.endSession();
+      logger.error(`Transaction failed during booking seat update: ${err}`);
+      throw new ApiError(500, "Internal server error during transaction");
+    }
+  } catch (error) {
+    logger.error(`Error in verifying the payment: ${error}`);
+    return res.status(
+      500
+    ).json({
+      success: false,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+

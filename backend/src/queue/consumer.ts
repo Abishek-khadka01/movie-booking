@@ -31,4 +31,4 @@ const SendNotification = async ({ _id, title }: NotificationPayload) => {
   }
 };
 
-export default SendNotification;
+export  {SendNotification};

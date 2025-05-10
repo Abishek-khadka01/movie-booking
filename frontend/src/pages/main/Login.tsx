@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useUserStore from "../../context/userContext";
 import { UserLoginAPi } from "../../services/userApis";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,15 @@ const Login = () => {
   const [toggle, setToggle] = useState<boolean>(false);
   const { setUser } = useUserStore();
   const navigate = useNavigate();
+
+  useEffect(()=>{
+    if(useUserStore.getState().user?.isLogin){
+      navigate("/dashboard")
+    }
+
+
+  }, [])
+
 
   const handleSubmit = async () => {
     try {

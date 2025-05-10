@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserRegisterApi } from "../../services/userApis";
 import { Eye, EyeOff } from "lucide-react"; // Importing icons for show/hide password
+import useUserStore from "../../context/userContext";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [username, setUsername] = useState<string>("");
@@ -11,7 +13,7 @@ const Register = () => {
   const [toggleConfirmPassword, setToggleConfirmPassword] = useState<boolean>(false); // Toggle for Confirm Password visibility
   
   const [error, setError] = useState<string>("");
-
+const navigate = useNavigate()
   async function handleSubmit() {
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -32,6 +34,15 @@ const Register = () => {
       setError("An error occurred during registration.");
     }
   }
+
+
+  useEffect(()=>{
+    if(useUserStore.getState().user?.isLogin){
+      navigate("/dashboard")
+    }
+
+
+  }, [])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8">
