@@ -99,4 +99,31 @@ const UserLogin : fnType = async (req ,res)=>{
 }
 
 
-export  {UserRegister , UserLogin}
+const UserLogOut : fnType = async(req ,res )=>{
+
+    try {
+        
+        return res.cookie("accessToken", "", {
+            maxAge : 0 
+        }).clearCookie("refreshToken", {
+            maxAge : 0
+        }).status(200).json({
+            success: true,
+            message :"User LogOut Successfully "
+        })
+
+
+
+    } catch (error) {
+        logger.error(`Error in the logging out the user ${error}` )
+        return res.status(500).json({
+            success : false,
+            message : error 
+        })
+    }
+
+
+
+}
+
+export  {UserRegister , UserLogin, UserLogOut}

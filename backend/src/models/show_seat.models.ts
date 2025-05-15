@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const showSeatSchema = new mongoose.Schema({
   seatNumber: { type: mongoose.Types.ObjectId, required: true,
     ref:"Seat",
-
    }, 
   
   status: { 

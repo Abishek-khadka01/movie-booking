@@ -95,16 +95,16 @@ const ShowID = () => {
             <div className="mt-6">
               <div className="grid grid-cols-10 gap-4">
                 {showDetails.seats.map(({ seatNumber, _id, status }) => {
-                  const isBooked = status !== "AVAILABLE";
+                  const isBooked = status == "BOOKED";
                   const isBeingBooked = onGoingRegisterSeats?.includes(_id);
                   const isSelected = selectedSeats.includes(_id);
-
+                    console.log(status)
                   const seatColor = isSelected
-                    ? "bg-green-500"
+                    ? "bg-green-500": isBooked
+                    ? "bg-red-500"
                     : isBeingBooked
                     ? "bg-yellow-400"
-                    : isBooked
-                    ? "bg-red-500"
+                    
                     : "bg-gray-200";
 
                   return (

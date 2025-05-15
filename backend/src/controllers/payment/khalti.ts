@@ -13,7 +13,7 @@ import { SEND_MESSAGE_QUEUE, SHOW_CREATED_MESSAGE } from "../../constants/consta
 import { Show } from "../../models/show.models";
 import { MapUserIdToSocket } from "../..";
 import { Document } from "mongoose";
-import { channel } from "diagnostics_channel";
+
 
 export const InitiatePayment = async (req: Request, res: Response) => {
   const session = await mongoose.startSession();
@@ -166,7 +166,7 @@ export const VerifyPayment = async (req: Request, res: Response) => {
   try {
     const { user } = req;
     const { pidx, transaction_id, purchase_order_id, status } = req.body;
-    console.log(req.body);
+    console.table(req.body);
 
     if (!pidx || !transaction_id || !purchase_order_id || !status) {
       logger.error(`Transaction validation failed: Missing fields`);
@@ -191,7 +191,9 @@ export const VerifyPayment = async (req: Request, res: Response) => {
       });
     }
 
-    if (findPayment.transactionId !== transaction_id || status.toUpperCase() !== "COMPLETED") {
+
+      console.log(`the transaction id is ${findPayment.transactionId} , ${transaction_id}`)
+    if (findPayment.transactionId !== pidx || status.toUpperCase() !== "COMPLETED") {
       logger.error(`Payment mismatch: expected ${findPayment.transactionId}, got ${transaction_id}, status: ${status}`);
       throw new ApiError(400, "The transaction was not proper");
     }
@@ -231,11 +233,25 @@ export const VerifyPayment = async (req: Request, res: Response) => {
 
       await session.commitTransaction();
       session.endSession();
-
-       res.status(200).json({
-        success: true,
-        message: "Payment Successful",
-      });
+   
+      res.status(200).json({
+       success: true,
+       message: "Payment Successful",
+     });
+     const message = {
+      transactionId: findPayment.booking._id ,
+      pidx : findPayment.transactionId
+    };
+    
+    console.log('the message is ' , message);
+      
+     (await  Queue).sendToQueue(
+        SEND_MESSAGE_QUEUE,
+        Buffer.from(JSON.stringify(message)),
+        { persistent: true }
+      );
+    
+     
       
       
      return 

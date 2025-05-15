@@ -1,13 +1,13 @@
-import { Queue, RedisClient } from "..";
-import { SHOW_CREATED_MESSAGE, TODAY_SHOWS } from "../constants/constants";
-import { CreateShowSeats } from "../db/data/Createshow_Seats";
-import { Movie } from "../models/movies.models";
-import { Screen } from "../models/screen.models";
-import { Show } from "../models/show.models";
-import { fnType } from "../type";
-import ApiError from "../utils/Error";
-import logger from "../utils/logger";
-import { movieSchemaValidator } from "../validators/movie.validators";
+import { Queue, RedisClient } from "../..";
+import { SHOW_CREATED_MESSAGE, TODAY_SHOWS } from "../../constants/constants";
+import { CreateShowSeats } from "../../db/data/Createshow_Seats";
+import { Movie } from "../../models/movies.models";
+import { Screen } from "../../models/screen.models";
+import { Show } from "../../models/show.models";
+import { fnType } from "../../type";
+import ApiError from "../../utils/Error";
+import logger from "../../utils/logger";
+import { movieSchemaValidator } from "../../validators/movie.validators";
 import mongoose from "mongoose";
 import { Document } from "mongoose";
 import {Request , Response} from "express"
@@ -111,8 +111,6 @@ import {Request , Response} from "express"
   };
   
 
-
-
 const AddMovie : fnType = async (req ,res)=>{
     try {
         
@@ -164,5 +162,4 @@ const AddMovie : fnType = async (req ,res)=>{
     }
 
 }
-
 

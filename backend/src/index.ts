@@ -7,7 +7,7 @@ import CookieParser from "cookie-parser"
 import cors from "cors"
 import logger from "./utils/logger";
 import { ShowSocketType, SocketHandler } from "./type";
-import { ONLINE_USERS, SEATS_RESERVATION_ONGOING, SHOW_CREATED_MESSAGE } from "./constants/constants";
+import { ONLINE_USERS, SEATS_RESERVATION_ONGOING, SEND_MESSAGE_QUEUE, SHOW_CREATED_MESSAGE } from "./constants/constants";
 import { REMOVE_SELECTED_SEAT_FOR_REGISTER, SELECT_SEATS_FOR_REGISTER , UPDATED_SEATS} from "./constants/sockets/socket.constants";
 import { ConnectBroker } from "./queue/producer";
 dotenv.config()
@@ -221,6 +221,22 @@ Queue.then((queue) => {
         }
       }
     });
+
+
+    queue.consume(SEND_MESSAGE_QUEUE, async(message : any)=>{
+        if (message !== null) {
+            try {
+              const parsedMessage = JSON.parse(message.content.toString());
+                console.table(parsedMessage)
+              logger.warn(`The details are received ${parsedMessage} `);
+      
+              await SendMessageandNotifications(parsedMessage)
+            } catch (error) {
+              logger.error('Failed to process message:', error);
+              
+            }
+          }
+    })
   });
   
 
@@ -246,7 +262,7 @@ import { CreateScreens } from "./db/data/createscreens";
 import { InsertMovies } from "./db/data/movies";
 import { User } from "./models/user.models";
 import { Show } from "./models/show.models";
-import SendNotification, { NotificationPayload } from "./queue/consumer";
+import { SendNotification, NotificationPayload, SendMessageandNotifications } from "./queue/consumer";
 
 
 

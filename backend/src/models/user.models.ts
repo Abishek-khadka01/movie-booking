@@ -8,6 +8,11 @@ const userSchema =   new mongoose.Schema<UserRegisterInterface>({
     required : true,
     
   } ,
+
+  profilePicture :{
+    type : String 
+  }
+,
   email : {
     type : String,
     required : true ,
