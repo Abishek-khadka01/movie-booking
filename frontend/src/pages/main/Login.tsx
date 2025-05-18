@@ -26,12 +26,12 @@ const Login = () => {
       if (response.statusText === "OK") {
         const { data } = response;
         alert(data.message);
-
+          console.log(data.user.admin)
         setUser({
           profilePicture: "",
           username: data.user.username,
           _id: data.user._id,
-          admin : false,
+          admin : data.user.admin,
           isLogin : true
         });
 

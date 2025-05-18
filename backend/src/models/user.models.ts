@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { UserRegisterInterface } from "../type";
+import { boolean } from "joi";
 const userSchema =   new mongoose.Schema<UserRegisterInterface>({
   username : {
     type : String,
@@ -20,14 +21,12 @@ const userSchema =   new mongoose.Schema<UserRegisterInterface>({
   } ,
   password : {
     type :String,
-    required : true 
-  } , 
-  userType :{
-    type :String ,
-    required : true,
-    enum :['USER', 'ADMIN'],
-    default :'USER'
-  }  
+    required : true ,
+  }, 
+  admin :{
+    type : Boolean,
+    default : false
+  }
 })
 
 userSchema.pre("save",async function(){

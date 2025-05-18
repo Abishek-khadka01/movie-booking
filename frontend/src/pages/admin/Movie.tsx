@@ -4,7 +4,7 @@ import { GetMoviebyId } from "../../services/movieApis";
 import { FullMovieResponse } from "../../types/MovieTypes";
 import "../../css/MovieCard.css";
 
-const MovieCard = () => {
+const MovieCardAdmin = () => {
   const { id } = useParams<{ id: string }>();
   const [movieData, setMovieData] = useState<FullMovieResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -191,4 +191,4 @@ const MovieCard = () => {
   );
 };
 
-export default MovieCard;
+export default MovieCardAdmin;

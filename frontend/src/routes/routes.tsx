@@ -3,14 +3,18 @@ import Login from "../pages/main/Login";
 import Register from "../pages/main/Register";
 import Dashboard from "../pages/main/Dashboard";
 import Movies from "../pages/admin/MoviesPage";
-import MovieCard from "../pages/admin/Movie";
+
+import MovieCard from "../pages/main/MovieId";
 import Shows from "../pages/main/Shows";
 import ShowID from "../pages/main/Showid";
 import PaymentCallback from "../pages/main/PaymentCallback";
-import NavRoute from "./NavRoute"; // This will have Navbar and Outlet management
-// Navbar component for global use
-import LandingPage from "../LandingPage"; // For non-logged-in users
+import NavRoute from "./NavRoute"; 
+
+import LandingPage from "../LandingPage"; 
 import LoginFalseNavRoute from "./NonLogin";
+import MovieId from "../pages/main/MovieId";
+import AdminRoute from "./Admin";
+import MovieCardAdmin from "../pages/admin/Movie";
 
 export const AppRoute = () => {
   return (
@@ -27,10 +31,15 @@ export const AppRoute = () => {
       {/* Authenticated routes with Navbar and Outlet */}
       <Route path="/" element={<NavRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/movies/:id" element={<MovieCard />} />
+        <Route path="/movies/:id" element={<MovieId />} />
         <Route path="/shows/:showid" element={<ShowID />} />
         <Route path="/khalti/callback" element={<PaymentCallback />} />
       </Route>
+
+      <Route path="/admin" element={<AdminRoute/>}>
+          <Route path="/admin/movies/:id" element={<MovieCardAdmin/>}></Route>
+      </Route>
+
     </Routes>
   );
 };

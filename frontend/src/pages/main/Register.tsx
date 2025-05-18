@@ -23,8 +23,8 @@ const navigate = useNavigate()
 
     try {
       const response = await UserRegisterApi(username, email, password);
-
-      if (response.data.data.success) {
+        console.log(response.data)
+      if (response.data.success) {
         alert("User registered successfully!");
       } else {
         setError("Registration failed. Please try again.");

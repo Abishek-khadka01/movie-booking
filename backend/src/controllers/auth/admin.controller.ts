@@ -111,7 +111,7 @@ import {Request , Response} from "express"
   };
   
 
-const AddMovie : fnType = async (req ,res)=>{
+ export const AddMovie : fnType = async (req ,res)=>{
     try {
         
             const validate = movieSchemaValidator.validate(req.body)
@@ -162,4 +162,54 @@ const AddMovie : fnType = async (req ,res)=>{
     }
 
 }
+
+
+export const DeleteMovie  : fnType = async (req ,res)=>{
+  try {
+    
+    const {movieid} = req.query
+
+      if(!movieid){
+        logger.warn(`NO movie id found`)
+        throw new ApiError(301, 'NO movie was selected ')
+      }
+
+
+      await Movie.findByIdAndDelete(movieid)
+
+
+      return res.status(200).json({
+        success : true ,
+        message : `Movie deleted successfully `
+      })
+
+
+  } catch (error) {
+    logger.error(`Error in deleting the movie ${error}`)
+    return res.status(500).json({
+      success : false,
+      message : error
+    })
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
 

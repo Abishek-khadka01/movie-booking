@@ -18,7 +18,7 @@ export interface UserRegisterInterface extends Document {
     password: string;
     comparePassword: (candidatePassword: string) => Promise<boolean>;
     createTokens: () => Tokens;
-    userType : string
+    admin : Boolean;
     profilePicture ?: string 
 }
 

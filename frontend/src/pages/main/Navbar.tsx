@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import NotificationSocket from '../../services/sockets/notification.sockets';
 import { SEND_NOTICATIONS } from '../../constants/constants';
 import useUserStore from '../../context/userContext';
+import { UserLogOut } from '../../services/userApis';
 
 type NotificationType = {
   id: string;
@@ -24,7 +25,18 @@ const Navbar = () => {
   const user = useUserStore.getState().user;
   const isLoggedIn = user?.isLogin;
   const NotificationSocketInstance = NotificationSocket.GetInstance(user?._id as string);
+ 
 
+    const HandleLogOut = async ()=>{
+      const  response = await UserLogOut()
+        console.log(response.status)
+        console.log(response.data)
+          if(response.status == 200 && response.data.success ){
+
+             useUserStore.getState().clearUser()
+              navigate("/")
+          }
+    }
   useEffect(() => {
     if (!NotificationSocketInstance) return;
 
@@ -43,7 +55,7 @@ const Navbar = () => {
   return (
     <nav className="bg-white shadow-md px-6 py-4 fixed top-0 w-full z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <div className="text-2xl font-bold text-indigo-600 cursor-pointer" onClick={() => navigate("/")}>
+        <div className="text-2xl font-bold text-indigo-600 cursor-pointer" onClick={() =>  navigate(useUserStore.getState().user?.isLogin? "/dashboard" :"/")}>
           Online-Ticket
         </div>
 
@@ -118,7 +130,7 @@ const Navbar = () => {
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
                     <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</Link>
                     <Link to="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Change Password</Link>
-                    <Link to="#" className="block px-4 py-2 text-red-600 hover:bg-gray-100">Logout</Link>
+                    <button  onClick= {HandleLogOut} className="block px-4 py-2 text-red-600 hover:bg-gray-100">Logout</button>
                   </div>
                 )}
               </div>

@@ -3,6 +3,7 @@ import { MovieResponseType } from "../../types/MovieTypes";
 import { FindAllMovies } from "../../services/movieApis";
 import { useNavigate } from "react-router-dom";
 import ReusableMovieCard from "../../components/ReUsableMovieCard";
+import useUserStore from "../../context/userContext";
 
 const Movies = () => {
   const [movies, setMovies] = useState<MovieResponseType[] | null>(null);
@@ -29,7 +30,8 @@ const Movies = () => {
   }, []);
 
   const handleCardClick = (id: string) => {
-    navigate(`/movies/${id}`);
+      
+     navigate(useUserStore.getState().user?.admin ? `/admin/movies/${id}` : `/movies/${id}`)
   };
 
   return (
