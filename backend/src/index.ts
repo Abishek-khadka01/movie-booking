@@ -279,15 +279,3 @@ app.use(ErrorMiddleware)
 
 export {httpServer , RedisClient , MapSelectedSeatToUserId , MapSocketToUserId , MapUserIdToSocket , NotificationSocket, Queue}
 
-
-
-// todo 
-
-/*
-     add the payment methofs 
-     the selected user can remove the seatid after reloading the page too 
-     
-
-
-
-*/ 

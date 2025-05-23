@@ -29,19 +29,22 @@ const MovieCardAdmin = () => {
     try {
       const response = await fetch(import.meta.env.VITE_ADMIN_CREATE_SHOW, {
         method: "POST",
+        credentials :"include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
+      
       });
-
+      alert(response.statusText)
+      console.log(response)
       if (!response.ok) {
         throw new Error("Failed to add show");
       }
 
       const result = await response.json();
       console.log("Show added successfully:", result);
-      navigate("/shows");
+      navigate("/allshows");
     } catch (err) {
       console.error("Error submitting form:", err);
       alert("Failed to add show. Please try again.");

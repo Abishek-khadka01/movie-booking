@@ -20,6 +20,12 @@ const Dashboard = ()=>{
                 <img src={user?.profilePicture } alt="" />
 
             </div>
+
+            /**
+             * add the booked movies details with the price and date 
+             * 
+             * 
+             */
         }
 
         </>
