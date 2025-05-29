@@ -7,7 +7,7 @@ import CookieParser from "cookie-parser"
 import cors from "cors"
 import logger from "./utils/logger";
 import { ShowSocketType, SocketHandler } from "./type";
-import { ONLINE_USERS, SEATS_RESERVATION_ONGOING, SEND_MESSAGE_QUEUE, SHOW_CREATED_MESSAGE } from "./constants/constants";
+import { ONLINE_USERS, SEATS_RESERVATION_ONGOING, SEND_MESSAGE_QUEUE, SHOW_CREATED_MESSAGE, TEMP_REMOVE_SEATS } from "./constants/constants";
 import { REMOVE_SELECTED_SEAT_FOR_REGISTER, SELECT_SEATS_FOR_REGISTER , UPDATED_SEATS} from "./constants/sockets/socket.constants";
 import { ConnectBroker } from "./queue/producer";
 dotenv.config()
@@ -170,9 +170,9 @@ ShowSocket.on("connect", (socket : ShowSocketType)=>{
             logger.error('Error during seat selection process', error);
           
         }
+    })
 
-
-        socket.on(REMOVE_SELECTED_SEAT_FOR_REGISTER , async(data)=>{
+     socket.on(REMOVE_SELECTED_SEAT_FOR_REGISTER , async(data)=>{
             try {
 
         const {seatId }  = data
@@ -195,8 +195,39 @@ ShowSocket.on("connect", (socket : ShowSocketType)=>{
 
 
         })
-    });
     
+        socket.on(TEMP_REMOVE_SEATS, (data) => {
+            const { seatIds } = data;
+          
+            if (!Array.isArray(seatIds) || !socket.showID) {
+              logger.warn("Invalid seatIds or missing showID in TEMP_REMOVE_SEATS");
+              return;
+            }
+          
+            logger.warn("TEMP_REMOVE_SEATS triggered. Starting delayed cleanup.");
+            const ttl = 1800 * 1000;
+            setTimeout(() => {
+              (async () => {
+                try {
+                  for (const seatId of seatIds) {
+                    await RedisClient.srem(`${SEATS_RESERVATION_ONGOING}:${socket.showID}`, seatId);
+                    MapSelectedSeatToUserId.delete(seatId);
+                  }
+          
+                  const updatedSeats = await RedisClient.smembers(`${SEATS_RESERVATION_ONGOING}:${socket.showID}`);
+                  logger.warn(`Updated seats after removal: ${updatedSeats}`);
+          
+                  socket.broadcast.emit(UPDATED_SEATS, {
+                    showid: socket.showID,
+                    updatedSeats
+                  });
+                } catch (err) {
+                  logger.error(`Async error in TEMP_REMOVE_SEATS: ${err}`);
+                }
+              })();
+            }, ttl);
+          });
+          
 
 })
 
@@ -263,6 +294,7 @@ import { InsertMovies } from "./db/data/movies";
 import { User } from "./models/user.models";
 import { Show } from "./models/show.models";
 import { SendNotification, NotificationPayload, SendMessageandNotifications } from "./queue/consumer";
+import { SourceTextModule } from "vm";
 
 
 
@@ -277,5 +309,5 @@ import { SendNotification, NotificationPayload, SendMessageandNotifications } fr
 app.use(ErrorMiddleware)
 
 
-export {httpServer , RedisClient , MapSelectedSeatToUserId , MapSocketToUserId , MapUserIdToSocket , NotificationSocket, Queue}
+export {httpServer , RedisClient , MapSelectedSeatToUserId , MapSocketToUserId , MapUserIdToSocket , NotificationSocket, Queue, ShowSocket}
 

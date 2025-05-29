@@ -126,4 +126,47 @@ const UserLogOut : fnType = async(req ,res )=>{
 
 }
 
-export  {UserRegister , UserLogin, UserLogOut}
+
+const FindUser : fnType = async(req , res)=>{
+    try {
+        
+        const {email } = req.params;
+
+        logger.info(`the find user is clicked `)
+        console.log(email)
+
+        const findUser = await User.findOne({
+            email
+        }).select("_id email profilePicture admin ")
+
+            console.log(findUser)
+        if(!findUser){
+            logger.warn(`NO user found `)
+            return res.status(404).json({
+                success : false,
+                message :"NO users found "
+            })
+        } 
+
+        logger.info(`Users found Successfully`);
+
+
+        return res.status(200).json({
+            success : true,
+            message : findUser
+        })
+
+
+    } catch (error) {
+        logger.error(`Error in  finding the user ${error}`)
+        return res.status(500).json({
+            success :false,
+            message : error 
+        })
+    }
+
+
+
+}
+
+export  {UserRegister , UserLogin, UserLogOut , FindUser}

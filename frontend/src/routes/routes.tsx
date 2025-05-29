@@ -15,6 +15,7 @@ import LoginFalseNavRoute from "./NonLogin";
 import MovieId from "../pages/main/MovieId";
 import AdminRoute from "./Admin";
 import MovieCardAdmin from "../pages/admin/Movie";
+import AdminDashboard from "../pages/admin/AdminDashboard";
 
 export const AppRoute = () => {
   return (
@@ -38,6 +39,7 @@ export const AppRoute = () => {
 
       <Route path="/admin" element={<AdminRoute/>}>
           <Route path="/admin/movies/:id" element={<MovieCardAdmin/>}></Route>
+          <Route path="/admin/dashboard" element={<AdminDashboard/>}></Route>
       </Route>
 
     </Routes>

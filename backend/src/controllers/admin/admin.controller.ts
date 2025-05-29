@@ -11,6 +11,7 @@ import { movieSchemaValidator } from "../../validators/movie.validators";
 import mongoose from "mongoose";
 import { Document } from "mongoose";
 import {Request , Response} from "express"
+import { User } from "../../models/user.models";
 
 
 
@@ -205,6 +206,43 @@ export const DeleteMovie  : fnType = async (req ,res)=>{
 
 }
 
+
+export const FindAdmins : fnType = async(req ,res)=>{
+
+
+  try {
+      const FindAdmin = await User.find({
+        admin : true
+  })
+
+  if(!FindAdmin){
+    logger.warn(`NO admins was found`)
+    return res.status(301).json({
+      success :false,
+      message :"No admins found "
+    })
+
+    
+  }
+
+
+  logger.info(`Admins found successfully`);
+  return res.status(200).json({
+    success : true,
+    message : FindAdmin
+  })
+
+
+  } catch (error) {
+    logger.error(`Error in finding the admins `)
+
+    return res.status(500).json({
+      success : false,
+      message :error
+    })
+  }
+
+}
 
 
 

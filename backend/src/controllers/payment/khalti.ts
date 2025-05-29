@@ -13,7 +13,8 @@ import { SEND_MESSAGE_QUEUE, SHOW_CREATED_MESSAGE } from "../../constants/consta
 import { Show } from "../../models/show.models";
 import { MapUserIdToSocket } from "../..";
 import { Document } from "mongoose";
-
+import { ShowSocket } from "../..";
+import { BroadCastMessage } from "../../utils/functions";
 
 export const InitiatePayment = async (req: Request, res: Response) => {
   const session = await mongoose.startSession();
@@ -126,9 +127,9 @@ export const InitiatePayment = async (req: Request, res: Response) => {
     await session.commitTransaction();
     session.endSession();
 
-      (await Queue).sendToQueue(SHOW_CREATED_MESSAGE as string , Buffer.from(JSON.stringify({
-        movieName : "hello"
-      })))
+      // (await Queue).sendToQueue(SHOW_CREATED_MESSAGE as string , Buffer.from(JSON.stringify({
+      //   movieName : "hello"
+      // })))cl
 
 
     return res.status(200).json({
@@ -221,6 +222,8 @@ export const VerifyPayment = async (req: Request, res: Response) => {
         throw new ApiError(500, "Booking data is incomplete");
       }
 
+      const findBooking = await Booking.findById(bookingId)
+
       for (const seatId of seatNumbers) {
         if (seatId) {
           await ShowSeat.findByIdAndUpdate(
@@ -233,7 +236,9 @@ export const VerifyPayment = async (req: Request, res: Response) => {
 
       await session.commitTransaction();
       session.endSession();
-   
+      await BroadCastMessage(findBooking?.show as mongoose.Types.ObjectId , seatNumbers as mongoose.Types.ObjectId[])
+
+        
       res.status(200).json({
        success: true,
        message: "Payment Successful",
@@ -243,6 +248,8 @@ export const VerifyPayment = async (req: Request, res: Response) => {
       pidx : findPayment.transactionId
     };
     
+    
+
     console.log('the message is ' , message);
       
      (await  Queue).sendToQueue(

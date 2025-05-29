@@ -4,6 +4,7 @@ import ApiError from "../utils/Error";
 import jwt from "jsonwebtoken"
 import { JwtResponseType } from "../types/types";
 import mongoose from "mongoose"
+import { User } from "../models/user.models";
  export const AuthMiddleware = async (req : Request , res : Response , next : NextFunction)=>{
 
 
@@ -33,6 +34,34 @@ import mongoose from "mongoose"
             message : error
         })
     }
+
+
+}
+
+
+export const AdminMiddleware = async( req  : Request, res : Response, next : NextFunction)=>{
+
+    try {
+        
+        const {user} = req;
+        
+        const findUser = await User.findById(user);
+
+        if(!findUser || !findUser.admin){
+            throw new ApiError(400, `the user is not admin `);
+
+        }
+        next()
+
+
+    } catch (error) {
+        logger.error(`Error in the auth middleware ${error}`)
+        return res.status(400).json({
+            success : false,
+            message : error
+        })
+    }
+
 
 
 }

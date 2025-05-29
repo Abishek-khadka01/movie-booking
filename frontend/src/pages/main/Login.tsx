@@ -13,7 +13,8 @@ const Login = () => {
 
   useEffect(()=>{
     if(useUserStore.getState().user?.isLogin){
-      navigate("/dashboard")
+      
+      useUserStore.getState().user?.admin ? "/admin/dashboard" : "/dashboard"
     }
 
 
@@ -35,7 +36,9 @@ const Login = () => {
           isLogin : true
         });
 
-        navigate("/dashboard");
+        navigate(
+          data.user.admin ? "/admin/dashboard" : "/dashboard"
+        );
       }
     } catch (error) {
       alert(error);

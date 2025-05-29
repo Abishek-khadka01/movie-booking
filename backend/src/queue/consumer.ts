@@ -21,6 +21,7 @@ const SendNotification = async ({ _id, title }: NotificationPayload) => {
     logger.warn(`the online users are ${onlineUsers}`)
 
     onlineUsers.forEach((members)=>{
+      logger.warn(`the message is sent to ${members}`)
       NotificationSocket.to(MapUserIdToSocket.get(members as string ) as string ).emit(SEND_NOTICATIONS, {
         id : _id.toString(),
         title 
@@ -28,6 +29,7 @@ const SendNotification = async ({ _id, title }: NotificationPayload) => {
 
     })
 
+      
     console.log(`NOtification send `)
   } catch (error) {
     logger.error(`Error in sending the notification: ${error}`);

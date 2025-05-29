@@ -60,8 +60,8 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex space-x-6 items-center">
-          <Link to="movies" className="text-gray-700 hover:text-indigo-600">Movies</Link>
-          <Link to="allshows" className="text-gray-700 hover:text-indigo-600">Today's Shows</Link>
+          <Link to="/movies" className="text-gray-700 hover:text-indigo-600">Movies</Link>
+          <Link to="/allshows" className="text-gray-700 hover:text-indigo-600">Today's Shows</Link>
 
           {isLoggedIn ? (
             <>

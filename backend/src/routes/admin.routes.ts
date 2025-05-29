@@ -1,14 +1,16 @@
 import { Router } from "express";
-import { AuthMiddleware } from "../middlewares/auth";
-import { CreateShow } from "../controllers/auth/admin.controller";
+import { AdminMiddleware, AuthMiddleware } from "../middlewares/auth";
+import { CreateShow, FindAdmins } from "../controllers/admin/admin.controller";
 
 
 const AdminRouter = Router()
 
 
 AdminRouter.use(AuthMiddleware)
+AdminRouter.use(AdminMiddleware)
 
 AdminRouter.post("/create-show" , CreateShow)
+AdminRouter.get("/find", FindAdmins)
 
 
 export {AdminRouter}

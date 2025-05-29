@@ -36,3 +36,17 @@ export const UserLogOut = async ()=>{
         withCredentials : true
     })
 }
+
+export const FindUsers = async (email : string )=>{
+     
+    console.log(`${import.meta.env.VITE_USER_FIND}/${email}`)
+    return await axios.get(`${import.meta.env.VITE_USER_FIND}/${email}`, {
+        withCredentials : true
+    } )
+}
+
+export const FindAdmins = async ()=>{
+    return await axios.get(import.meta.env.VITE_ADMIN_FIND, {
+        withCredentials : true
+    })
+}
