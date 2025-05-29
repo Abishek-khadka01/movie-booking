@@ -57,7 +57,6 @@ const movieSchemaValidator = Joi.object({
       }),
   });
   
-  // Example usage
 
   
   export { movieSchemaValidator };

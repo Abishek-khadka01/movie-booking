@@ -12,6 +12,7 @@ import mongoose from "mongoose";
 import { Document } from "mongoose";
 import {Request , Response} from "express"
 import { User } from "../../models/user.models";
+import { uploadOnCloudinary } from "../../utils/cloudinary";
 
 
 
@@ -112,58 +113,61 @@ import { User } from "../../models/user.models";
   };
   
 
- export const AddMovie : fnType = async (req ,res)=>{
+  export const AddMovie: fnType = async (req, res) => {
     try {
-        
-            const validate = movieSchemaValidator.validate(req.body)
-
-            if(validate.error){
-                logger.warn(`Error in adding the movie ${validate.error.message}`)
-                throw new ApiError(301, validate.error.message )
-            }
-
-        const {title, description , duration , rating , releaseDate , language, genre} = req.body
-
-        const findMovieExists = await Movie.find({
-            title,
-            description,
-            duration
-        })
-
-        if(findMovieExists){
-            logger.error(`Movie already exists`)
-            throw new ApiError(301, "Movie already exists")
-        }
-
-
-        const createMovie = await Movie.create({
-            title,
-            description,
-            duration,
-            rating,
-            releaseDate,
-            language,
-            genre
-        })
-
-        logger.info(`Movies added successfully `)
-        return res.status(200).json({
-            success : false,
-            message :"Movie added successfully "
-        })
-
-
-
+      logger.info(`The add movie was triggered`);
+      console.table(req.body);
+  
+      const validate = movieSchemaValidator.validate(req.body);
+  
+      if (validate.error) {
+        logger.warn(`Validation error: ${validate.error.message}`);
+        throw new ApiError(301, validate.error.message);
+      }
+  
+      const { title, description, duration, rating, releaseDate, language, genre } = req.body;
+  
+      const findMovieExists = await Movie.find({ title, description, duration });
+  
+      if (findMovieExists && findMovieExists.length > 0) {
+        logger.error(`Movie already exists`);
+        throw new ApiError(301, "Movie already exists");
+      }
+  
+      if (!req.file) {
+        logger.warn(`Thumbnail is not found`);
+        throw new ApiError(301, "Thumbnail required");
+      }
+  
+      const thumbnailFile = req.file;
+      const response = await uploadOnCloudinary(thumbnailFile.path);
+  
+      const createMovie = await Movie.create({
+        title,
+        description,
+        duration,
+        rating,
+        releaseDate,
+        language,
+        genre,
+        thumbnail: response
+      });
+  
+      logger.info(`Movie added successfully`);
+      return res.status(200).json({
+        success: true,
+        message: "Movie added successfully"
+      });
+  
     } catch (error) {
-        logger.error(`Error in adding the movies ${error}`)
-        return res.status(500).json({
-            success : false,
-            message : error
-        })
+      logger.error(`Error in adding the movie: ${error}`);
+      return res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : String(error)
+      });
     }
-
-}
-
+  };
+  
 
 export const DeleteMovie  : fnType = async (req ,res)=>{
   try {
@@ -244,6 +248,38 @@ export const FindAdmins : fnType = async(req ,res)=>{
 
 }
 
+
+export const CreateAdmin : fnType = async (req ,res)=>{
+
+  try {
+    
+    const {id }  = req.body;
+
+    if(!id){
+      logger.error(`NO id was received `)
+      throw new ApiError(301, 'NO valid user');
+    }
+
+    await User.findByIdAndUpdate(id , {
+      admin : true 
+    })
+
+
+    return res.status(200).json({
+      success : true ,
+      message :"Admin Creation successful"
+    })
+
+  } catch (error) {
+    logger.error(`Error in creating the admin ${error}`)
+    return res.status(500).json({
+      success : false,
+      message :error 
+    })
+  }
+
+
+}
 
 
 

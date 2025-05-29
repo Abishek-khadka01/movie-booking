@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AdminMiddleware, AuthMiddleware } from "../middlewares/auth";
-import { CreateShow, FindAdmins } from "../controllers/admin/admin.controller";
+import { AddMovie, CreateAdmin, CreateShow, FindAdmins } from "../controllers/admin/admin.controller";
+import { upload } from "../middlewares/multer";
 
 
 const AdminRouter = Router()
@@ -11,6 +12,6 @@ AdminRouter.use(AdminMiddleware)
 
 AdminRouter.post("/create-show" , CreateShow)
 AdminRouter.get("/find", FindAdmins)
-
-
+AdminRouter.put("/create", CreateAdmin)
+AdminRouter.post("/create-movie", upload.single("thumbnail"), AddMovie)
 export {AdminRouter}
