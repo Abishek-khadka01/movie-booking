@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { AuthMiddleware } from "../middlewares/auth";
-import { CreateShow } from "../controllers/admin.controller";
+import { CreateShow } from "../controllers/auth/admin.controller";
 
 
 const AdminRouter = Router()

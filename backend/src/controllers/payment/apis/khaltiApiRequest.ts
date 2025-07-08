@@ -1,10 +1,32 @@
-import axios from "axios"
+import axios from "axios";
 import mongoose from "mongoose";
+import logger from "../../../utils/logger";
 
 
+export type KhaltiDetailsType = {
+  total_amount: number;
+  purchase_order_id: mongoose.Types.ObjectId;
+  customerInfo: CustomerInfo;
+  purchase_order_name: string;
+  product_details?: ProductDetailstype[] | any 
+};
+
+type CustomerInfo = {
+  username: string;
+  email: string;
+};
+
+export type ProductDetailstype = {
+
+  seatNumber: string;
+  _id: string | mongoose.Schema.Types.ObjectId;
+  price: string;
+};
 
 
-export const KhaltiRequest = async (khaltiDetails: KhaltiDetailsType) => {
+export const KhaltiRequest = async (khaltiDetails: KhaltiDetailsType) : Promise<any>=> {
+  console.log("Product details:", khaltiDetails.product_details);
+
   if (
     !process.env.KHALTI_URL ||
     !process.env.ADMIN_KHALTI_SECRET_KEY ||
@@ -15,15 +37,16 @@ export const KhaltiRequest = async (khaltiDetails: KhaltiDetailsType) => {
   }
 
   try {
+   
     const options = {
-      method: 'POST',
+      method: "POST",
       url: process.env.KHALTI_URL,
       headers: {
-        'Authorization': `key ${process.env.ADMIN_KHALTI_SECRET_KEY}`,
-        'Content-Type': 'application/json',
+        Authorization: `key ${process.env.ADMIN_KHALTI_SECRET_KEY}`,
+        "Content-Type": "application/json",
       },
       data: {
-        amount: khaltiDetails.total_amount,
+        amount: khaltiDetails.total_amount * 100,
         return_url: process.env.KHALTI_WEBSITE_RETURN_URL,
         website_url: process.env.KHALTI_WEBSITE_URL,
         purchase_order_id: khaltiDetails.purchase_order_id.toString(),
@@ -32,42 +55,27 @@ export const KhaltiRequest = async (khaltiDetails: KhaltiDetailsType) => {
           name: khaltiDetails.customerInfo.username,
           email: khaltiDetails.customerInfo.email,
         },
-        product_details: khaltiDetails.product_details,
+        // product_details: khaltiDetails.product_details?.seatNumber.map(
+        //   (item: ProductDetailstype) => ({
+        //     identity:
+        //       typeof item._id === "string"
+        //         ? item._id
+        //         : item._id.toString(),
+        //     name: `${item.seatNumber}`,
+        //     total_price: Number(item.price),
+        //   })
+        // ),
       },
     };
 
+    // Send request
     const response = await axios(options);
-    console.log(response.data, response.status);
-    return response;
+    console.log("Khalti response:", response.data, response.status);
+    return response.data;
   } catch (error: any) {
-  
-      console.error('Unknown error in khaltiRequest:', error);
-
+    
+      logger.error(`Unknown error in the khalti request: ${error.message}`);
+    
+    throw error;
   }
 };
-
-
-
-
-
-  export type KhaltiDetailsType = {
-    total_amount : number,
-    purchase_order_id : mongoose.Types.ObjectId,
-    customerInfo : CustomerInfo
-    purchase_order_name : string,
-    product_details :  ProductDetailstype[] | any
-  }
-
-  type  CustomerInfo = {
-    username : string ,
-    email : string ,
-    
-  }
-
-
-   export type ProductDetailstype ={
-        seatNumber : string ,
-        _id : string | mongoose.Schema.Types.ObjectId,
-        price : string 
-
-  }

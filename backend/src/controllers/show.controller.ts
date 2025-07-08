@@ -79,9 +79,13 @@ export const findTodayShow  : fnType= async (req, res) => {
                 
                     const findShow = await Show.findById(showid).populate({path:"movie" ,select :"title description _id rating thumbnail"})
                     .populate({path:"screen", select :"_id name "})
-                    .populate({path:"seats" ,select :"seatNumber _id status price  "})
+                    .populate({path:"seats" ,select :"seatNumber _id status price" ,  populate: {
+                        
+                        path: "seatNumber", 
+                        select: "seatNumber" 
+                      }})
 
-                        console.log(await Show.findById(showid))
+                        console.log(findShow)
                 if(!findShow){
                     logger.warn(`NO show was found`)
                     throw new ApiError(401, 'NO show found')

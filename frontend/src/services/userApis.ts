@@ -25,3 +25,14 @@ export const UserLoginAPi = async (email : string , password : string)=>{
         withCredentials  : true
     })
 }
+
+
+
+export const UserLogOut = async ()=>{
+    console.log(`User LogOut clicked `)
+    return await axios.put(import.meta.env.VITE_USER_LOGOUT , {
+        
+    }, {
+        withCredentials : true
+    })
+}

@@ -11,6 +11,7 @@ import {
 } from "../../constants/sockets/socket.constants";
 import { PaymentApi } from "../../services/paymentApis";
 
+
 const ShowID = () => {
   const [onGoingRegisterSeats, setOnGoingRegisterSeats] = useState<string[] | null>(null);
   const [showDetails, setShowDetails] = useState<ShowDetailsType | null>(null);
@@ -20,18 +21,20 @@ const ShowID = () => {
   const { showid } = useParams();
   const ShowSocketInstance = ShowsSocket.Instance();
 
+  // Connect to socket when component mounts
   useEffect(() => {
-    ShowsSocket.ConnectSocket(id as string, showid as string);
-  }, []);
+    if (id && showid) {
+      ShowsSocket.ConnectSocket(id, showid);
+    }
+  }, [id, showid]);
 
-  const Datas = async () => {
+  // Fetch show data
+  const fetchShowData = async () => {
     try {
       const result = await FindShowbyID(showid as string);
       const { data } = result;
 
-      if (!data.success) {
-        throw new Error(data.message);
-      }
+      if (!data.success) throw new Error(data.message);
 
       setShowDetails(data.shows);
       setOnGoingRegisterSeats(data.bookingSeats);
@@ -41,125 +44,130 @@ const ShowID = () => {
   };
 
   useEffect(() => {
-    Datas();
-  }, []);
+    if (showid) fetchShowData();
+  }, [showid]);
 
+  // Listen for real-time seat updates
   useEffect(() => {
-    ShowSocketInstance?.on(UPDATED_SEATS, (data) => {
-      console.log(`Update seat was received`, data);
+    const listener = (data: { showid: string; updatedSeats: string[] }) => {
       if (data.showid === showid) {
         setOnGoingRegisterSeats(data.updatedSeats);
       }
-    });
+    };
 
-   
+    ShowSocketInstance?.on(UPDATED_SEATS, listener);
+    return () => ShowSocketInstance?.off(UPDATED_SEATS, listener);
+  }, [ShowSocketInstance, showid]);
 
-  }, [ShowSocketInstance]);
-
+  // Handle seat selection toggle
   const handleSeatSelect = (seatId: string) => {
     const isAlreadySelected = selectedSeats.includes(seatId);
 
-    setSelectedSeats((prevSelected) =>
-      isAlreadySelected
-        ? prevSelected.filter((id) => id !== seatId)
-        : [...prevSelected, seatId]
+    setSelectedSeats((prev) =>
+      isAlreadySelected ? prev.filter((id) => id !== seatId) : [...prev, seatId]
     );
 
     ShowsSocket.EmitEvent(
       isAlreadySelected ? REMOVE_SELECTED_SEAT_FOR_REGISTER : SELECT_SEATS_FOR_REGISTER,
-      {
-        seatId: seatId,
-      }
+      { seatId }
     );
-
-    console.log(selectedSeats)
   };
 
-
-
-  const HandlePayment = async (seatids : string[], showid : string )=>{
-    console.log(`Button Clicked `)
-      const result = await PaymentApi(seatids, showid)
-    if(result.data.success){
-      alert(`Successful `)
+  const handlePayment = async () => {
+    const result = await PaymentApi(selectedSeats, showid as string);
+    if (result.data.success) {
+      window.location.href = result.data.payment_url;
     }
+  };
 
-  }
   return (
-    <>
-      <div>Show ID</div>
-      <div>Movie</div>
-      {showDetails && (
+    <div className="p-6">
+      {showDetails ? (
         <>
-          <img src={showDetails.movie.thumbnail} alt={showDetails.movie.title} />
-          <h2>{showDetails.movie.title}</h2>
-          <p>Rating: {showDetails.movie.rating}</p>
-          <p>{showDetails.movie.description}</p>
-          <p>Screen: {showDetails.screen.name}</p>
+          {/* Movie info */}
+          <img
+            src={showDetails.movie.thumbnail}
+            alt={showDetails.movie.title}
+            className="w-full h-64 object-cover rounded-2xl"
+          />
+          <h2 className="text-2xl font-bold mt-4">{showDetails.movie.title}</h2>
+          <p className="text-lg">Rating: {showDetails.movie.rating}</p>
+          <p className="mt-2">{showDetails.movie.description}</p>
+          <p className="mt-2 font-medium">Screen: {showDetails.screen.name}</p>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "20px" }}>
-            {showDetails.seats.map(({ seatNumber, _id, price, status }) => {
-              const isBooked = status !== "AVAILABLE";
-              const isBeingBooked = onGoingRegisterSeats?.includes(_id);
-              const isSelected = selectedSeats.includes(_id);
+          {/* Seat grid */}
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-2">Pick your seat</h3>
+            <div className="grid grid-cols-10 gap-3">
+              {showDetails.seats.map(({ seatNumber, _id, status }) => {
+                const isBooked = status === "BOOKED";
+                const isBeingBooked = onGoingRegisterSeats?.includes(_id);
+                const isSelected = selectedSeats.includes(_id);
 
-              const seatColor = isSelected
-                ? "green"
-                : isBeingBooked
-                ? "green"
-                : isBooked
-                ? "red"
-                : "white";
+                const seatColor = isSelected
+                  ? "bg-green-500"
+                  : isBooked
+                  ? "bg-red-500"
+                  : isBeingBooked
+                  ? "bg-yellow-400"
+                  : "bg-gray-200";
 
-              return (
-                <div
-                  key={_id}
-                  style={{
-                    backgroundColor: seatColor,
-                    border: "1px solid black",
-                    padding: "10px",
-                    width: "100px",
-                  }}
-                >
-                  <p>{seatNumber}</p>
-                  <p>₹{Number(price)}</p>
+                return (
                   <button
                     type="button"
-                    onClick={() => handleSeatSelect(_id)}
+                    key={_id}
+                    className={`relative w-full pt-[100%] ${seatColor} border border-black rounded-sm focus:outline-none disabled:cursor-not-allowed`}
+                    onClick={() => !isBooked && !isBeingBooked && handleSeatSelect(_id)}
                     disabled={isBooked || isBeingBooked}
                   >
-                    {isSelected ? "Unselect" : "Select"}
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold">
+                      {seatNumber.seatNumber}
+                    </span>
                   </button>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
-          <div>
-            <p>Selected Seats</p>
-
-              {
-                selectedSeats.map((seats)=>{
+          {/* Selected seats section */}
+          <div className="mt-6">
+            <h3 className="font-semibold mb-1">Selected Seats:</h3>
+            {selectedSeats.length === 0 ? (
+              <p className="text-sm text-gray-500">No seat selected yet</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {selectedSeats.map((seatId) => {
+                  const seatInfo = showDetails.seats.find((s) => s._id === seatId);
+                  const seatLabel = seatInfo?.seatNumber.seatNumber ?? seatId;
                   return (
-                    <>
-                    {seats} 
-                    </>
-                  )
-                })
-              }
-
+                    <span
+                      key={seatId}
+                      onClick={() => handleSeatSelect(seatId)}
+                      title="Click to deselect"
+                      className="cursor-pointer bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-full text-sm transition"
+                    >
+                      {seatLabel}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-
-          <button type="button" onClick={()=>{
-            HandlePayment(selectedSeats ,showid as string  )
-          }}> 
-              Make payment 
-
+          {/* Payment button */}
+          <button
+            type="button"
+            className="mt-8 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handlePayment}
+            disabled={selectedSeats.length === 0}
+          >
+            Proceed to Payment
           </button>
         </>
+      ) : (
+        <p>Loading...</p>
       )}
-    </>
+    </div>
   );
 };
 

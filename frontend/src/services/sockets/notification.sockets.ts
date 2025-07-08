@@ -4,6 +4,10 @@ class NotificationSocket  {
 
     private static SocketInstance : Socket | null = null
         
+
+    static Instance = ()=>{
+        return this.SocketInstance
+    }
         static GetInstance = (userid : string)=>{
             console.log(userid)
            if(!this.SocketInstance){
@@ -26,6 +30,11 @@ class NotificationSocket  {
         static ConnectSocket = (userid : string )=>{
             console.log(`Connect Socket is running `)
             return this.GetInstance(userid)
+        }
+
+
+        static DisConnect = ()=>{
+            this.SocketInstance?.disconnect()
         }
 
 

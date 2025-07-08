@@ -4,7 +4,7 @@ export type MovieResponseType = {
     title: string
     
          thumbnail :string
-    
+        rating : number
       
       releaseDate: Date
      
@@ -19,6 +19,6 @@ export interface FullMovieResponse extends MovieResponseType {
     duration : number,
     language : string,
     genre : string[]
-    rating : number,
+   
     
 }

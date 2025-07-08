@@ -7,8 +7,9 @@ import CookieParser from "cookie-parser"
 import cors from "cors"
 import logger from "./utils/logger";
 import { ShowSocketType, SocketHandler } from "./type";
-import { ONLINE_USERS, SEATS_RESERVATION_ONGOING } from "./constants/constants";
+import { ONLINE_USERS, SEATS_RESERVATION_ONGOING, SEND_MESSAGE_QUEUE, SHOW_CREATED_MESSAGE } from "./constants/constants";
 import { REMOVE_SELECTED_SEAT_FOR_REGISTER, SELECT_SEATS_FOR_REGISTER , UPDATED_SEATS} from "./constants/sockets/socket.constants";
+import { ConnectBroker } from "./queue/producer";
 dotenv.config()
 
 const app = express();
@@ -200,6 +201,48 @@ ShowSocket.on("connect", (socket : ShowSocketType)=>{
 })
 
 
+
+const Queue =  ConnectBroker()
+Queue.then((queue) => {
+    queue.consume(SHOW_CREATED_MESSAGE, async (message: any) => {
+      if (message !== null) {
+        try {
+          const parsedMessage = JSON.parse(message.content.toString());
+          
+          logger.warn('The details are received');
+  
+          await SendNotification(parsedMessage);
+  
+          
+          queue.ack(message);
+        } catch (error) {
+          logger.error('Failed to process message:', error);
+          
+        }
+      }
+    });
+
+
+    queue.consume(SEND_MESSAGE_QUEUE, async(message : any)=>{
+        if (message !== null) {
+            try {
+              const parsedMessage = JSON.parse(message.content.toString());
+                console.table(parsedMessage)
+              logger.warn(`The details are received ${parsedMessage} `);
+      
+              await SendMessageandNotifications(parsedMessage)
+            } catch (error) {
+              logger.error('Failed to process message:', error);
+              
+            }
+          }
+    })
+  });
+  
+
+
+
+
 import { UserRouter } from "./routes/user.routes";
 import { MovieRouter } from "./routes/movie.routes";
 import { AdminRouter } from "./routes/admin.routes";
@@ -211,13 +254,17 @@ app.use("/movies", MovieRouter)
 app.use("/admin", AdminRouter)
 app.use("/shows", ShowRouter)
 app.use("/payment", PaymentRouter)
-import { ErrorMiddleware } from "./middlewares/ErrorMiddleware";
 
+
+import { ErrorMiddleware } from "./middlewares/ErrorMiddleware";
 import { createSeats } from "./db/data/creatSeats";
 import { CreateScreens } from "./db/data/createscreens";
 import { InsertMovies } from "./db/data/movies";
 import { User } from "./models/user.models";
 import { Show } from "./models/show.models";
+import { SendNotification, NotificationPayload, SendMessageandNotifications } from "./queue/consumer";
+
+
 
 
 
@@ -230,17 +277,5 @@ import { Show } from "./models/show.models";
 app.use(ErrorMiddleware)
 
 
-export {httpServer , RedisClient , MapSelectedSeatToUserId , MapSocketToUserId , MapUserIdToSocket}
+export {httpServer , RedisClient , MapSelectedSeatToUserId , MapSocketToUserId , MapUserIdToSocket , NotificationSocket, Queue}
 
-
-
-// todo 
-
-/*
-     add the payment methofs 
-     the selected user can remove the seatid after reloading the page too 
-     
-
-
-
-*/ 

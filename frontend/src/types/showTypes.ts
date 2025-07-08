@@ -18,7 +18,10 @@ export type ShowDetailsType =  {
 
 
 type SeatType = {
-    seatNumber : string ,
+    seatNumber : {
+        _id : string,
+        seatNumber : string 
+    } ,
     _id : string ,
     price : Number,
     status : 'AVAILABLE'| 'BOOKED'|  'BLOCKED'

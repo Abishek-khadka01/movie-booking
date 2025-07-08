@@ -1,17 +1,21 @@
-import { RedisClient } from "..";
-import { TODAY_SHOWS } from "../constants/constants";
-import { CreateShowSeats } from "../db/data/Createshow_Seats";
-import { Movie } from "../models/movies.models";
-import { Screen } from "../models/screen.models";
-import { Show } from "../models/show.models";
-import { fnType } from "../type";
-import ApiError from "../utils/Error";
-import logger from "../utils/logger";
-import { movieSchemaValidator } from "../validators/movie.validators";
+import { Queue, RedisClient } from "../..";
+import { SHOW_CREATED_MESSAGE, TODAY_SHOWS } from "../../constants/constants";
+import { CreateShowSeats } from "../../db/data/Createshow_Seats";
+import { Movie } from "../../models/movies.models";
+import { Screen } from "../../models/screen.models";
+import { Show } from "../../models/show.models";
+import { fnType } from "../../type";
+import ApiError from "../../utils/Error";
+import logger from "../../utils/logger";
+import { movieSchemaValidator } from "../../validators/movie.validators";
 import mongoose from "mongoose";
 import { Document } from "mongoose";
+import {Request , Response} from "express"
 
- export const CreateShow: fnType = async (req, res) => {
+
+
+
+ export const CreateShow = async (req : Request, res : Response) => {
     try {
       const  { moviename, starttime, screenno } = req.body; // screen id is from frontend  // the mvoviename is the movie id 
       
@@ -77,10 +81,24 @@ import { Document } from "mongoose";
 
 
             await RedisClient.del(TODAY_SHOWS)
-      return res.status(200).json({
+       res.status(200).json({
         success: true,
         message: "Show added successfully"
       });
+
+
+      const message = {
+        _id: createShow._id,
+        title : `The show ${findMovie.title} is added for the time ${starttime}`
+      };
+      
+
+      (await Queue).sendToQueue(SHOW_CREATED_MESSAGE ,Buffer.from(JSON.stringify(message)), {
+        persistent : true
+      } )
+      
+
+      console.log(`the message to queue sent `)
   
     } catch (error) {
       logger.error(`Error in creating the show: ${error}`);
@@ -93,9 +111,7 @@ import { Document } from "mongoose";
   };
   
 
-
-
-const AddMovie : fnType = async (req ,res)=>{
+ export const AddMovie : fnType = async (req ,res)=>{
     try {
         
             const validate = movieSchemaValidator.validate(req.body)
@@ -146,5 +162,54 @@ const AddMovie : fnType = async (req ,res)=>{
     }
 
 }
+
+
+export const DeleteMovie  : fnType = async (req ,res)=>{
+  try {
+    
+    const {movieid} = req.query
+
+      if(!movieid){
+        logger.warn(`NO movie id found`)
+        throw new ApiError(301, 'NO movie was selected ')
+      }
+
+
+      await Movie.findByIdAndDelete(movieid)
+
+
+      return res.status(200).json({
+        success : true ,
+        message : `Movie deleted successfully `
+      })
+
+
+  } catch (error) {
+    logger.error(`Error in deleting the movie ${error}`)
+    return res.status(500).json({
+      success : false,
+      message : error
+    })
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
 
 
